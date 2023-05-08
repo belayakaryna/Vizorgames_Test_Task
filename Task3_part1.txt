@@ -1,0 +1,19 @@
+WITH cte_cohorts AS
+  (SELECT *,
+          DATE(i.install_time) AS install_date,
+          COUNT(i.user_id) over (PARTITION BY DATE(i.install_time)) AS installs,
+          SUM(revenue) FILTER (WHERE payment_time<=install_time+ 1*interval '24 hour' ) OVER (PARTITION BY DATE(i.install_time),platform,ispaid) AS sum_revenue_1_cohort_day,
+          SUM(revenue) FILTER (WHERE payment_time<=install_time+ 3*interval '24 hour' ) OVER (PARTITION BY DATE(i.install_time),platform,ispaid) AS sum_revenue_3_cohort_day,
+          SUM(revenue) FILTER (WHERE payment_time<=install_time+ 5*interval '24 hour' ) OVER (PARTITION BY DATE(i.install_time),platform,ispaid) AS sum_revenue_5_cohort_day,
+          SUM(revenue) FILTER (WHERE payment_time<=install_time+ 7*interval '24 hour' ) OVER (PARTITION BY DATE(i.install_time),platform,ispaid) AS sum_revenue_7_cohort_day
+  FROM installs i
+  LEFT JOIN payments p
+  ON i.user_id=p.user_id) 
+  SELECT DISTINCT install_date,
+                  platform,
+                  ispaid,
+                  sum_revenue_1_cohort_day,
+                  sum_revenue_3_cohort_day,
+                  sum_revenue_5_cohort_day,
+                  sum_revenue_7_cohort_day
+  FROM cte_cohorts ;

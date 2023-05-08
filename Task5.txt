@@ -1,0 +1,25 @@
+EXPLAIN
+SELECT * FROM
+ (SELECT spend_2021.spend_date,
+         spend_2021.platform,
+         spend_2021.partner,
+         spend_2021.country
+ FROM spend_2021
+      UNION ALL
+  SELECT spend_2022.spend_date,
+         spend_2022.platform,
+         spend_2022.partner,
+         spend_2022.country
+ FROM spend_2022) AS s
+ FULL JOIN revenue AS r
+ ON
+         r.install_date = s.spend_date
+AND      r.platform= s.platform
+AND      r.partner= s.partner
+AND      r.country= s.country
+ RIGHT JOIN installs AS i
+ ON
+         COALESCE(r.install_date,s.spend_date)= i.install_date
+AND      COALESCE(r.platform,s.platform)= i.platform
+AND      COALESCE(r.partner,s.partner)= i.partner
+AND      COALESCE(r.country,s.country)= i.country;

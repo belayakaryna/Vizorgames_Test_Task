@@ -1,0 +1,34 @@
+WITH cte_cohorts AS
+  (SELECT i.user_id,
+          i.install_time,
+          p.payment_time,
+          p.revenue,DATE(i.install_time) AS install_date,
+          i.platform,
+          i.ispaid,
+          install_time+ 1*interval '24 hour' AS cohort_day_1,
+          install_time+ 3*interval '24 hour' AS cohort_day_3,
+          install_time+ 5*interval '24 hour' AS cohort_day_5,
+          install_time+ 7*interval '24 hour' AS cohort_day_7
+  FROM installs i
+  LEFT JOIN payments p 
+  ON i.user_id=p.user_id)
+  SELECT install_date,
+         platform,
+         ispaid,
+         SUM (CASE
+               WHEN payment_time < cohort_day_1   THEN revenue 
+               ELSE 0
+             END) AS sum_revenue_1_cohort_day,
+         SUM (CASE
+              WHEN payment_time < cohort_day_3 THEN revenue 
+              ELSE 0
+            END) AS sum_revenue_3_cohort_day,
+         SUM (CASE
+             WHEN payment_time < cohort_day_5 THEN revenue 
+             ELSE 0
+           END) AS sum_revenue_5_cohort_day,
+        SUM (CASE
+             WHEN payment_time < cohort_day_7 THEN revenue 
+            ELSE 0
+          END) AS sum_revenue_7_cohort_day
+  FROM cte_cohorts GROUP BY install_date,platform, ispaid;

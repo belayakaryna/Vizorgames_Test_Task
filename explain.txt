@@ -1,0 +1,28 @@
+QUERY PLAN
+Merge Right Join
+  Output: i.install_date, i.platform, i.partner, i.country, i.installs, r.net_revenue, spend_2021.spend
+  Merge Cond: (((COALESCE(r.install_date, spend_2021.spend_date)) = i.install_date) AND ((COALESCE(r.platform, spend_2021.platform)) = i.platform) AND ((COALESCE(r.partner, spend_2021.partner)) = i.partner) AND ((COALESCE(r.country, spend_2021.country)) = i.country))
+  ->  Sort
+        Output: spend_2021.spend, spend_2021.spend_date, spend_2021.platform, spend_2021.partner, spend_2021.country, r.net_revenue, r.install_date, r.platform, r.partner, r.country, (COALESCE(r.install_date, spend_2021.spend_date)), (COALESCE(r.platform, spend_2021.platform)), (COALESCE(r.partner, spend_2021.partner)), (COALESCE(r.country, spend_2021.country))
+        Sort Key: (COALESCE(r.install_date, spend_2021.spend_date)), (COALESCE(r.platform, (spend_2021.platform)::text)), (COALESCE(r.partner, spend_2021.partner)), (COALESCE(r.country, spend_2021.country))
+        ->  Merge Full Join
+              Output: spend_2021.spend, spend_2021.spend_date, spend_2021.platform, spend_2021.partner, spend_2021.country, r.net_revenue, r.install_date, r.platform, r.partner, r.country, COALESCE(r.install_date, spend_2021.spend_date), COALESCE(r.platform, spend_2021.platform), COALESCE(r.partner, spend_2021.partner), COALESCE(r.country, spend_2021.country)
+              Merge Cond: ((spend_2021.spend_date = r.install_date) AND (spend_2021.platform = r.platform) AND (spend_2021.partner = r.partner) AND (spend_2021.country = r.country))
+              ->  Sort
+                    Output: spend_2021.spend, spend_2021.spend_date, spend_2021.platform, spend_2021.partner, spend_2021.country
+                    Sort Key: spend_2021.spend_date, spend_2021.platform, spend_2021.partner, spend_2021.country
+                    ->  Append
+                          ->  Seq Scan on spend_2021
+                                Output: spend_2021.spend, spend_2021.spend_date, spend_2021.platform, spend_2021.partner, spend_2021.country
+                          ->  Seq Scan on spend_2022
+                                Output: spend_2022.spend, spend_2022.spend_date, spend_2022.platform, spend_2022.partner, spend_2022.country
+              ->  Sort
+                    Output: r.net_revenue, r.install_date, r.platform, r.partner, r.country
+                    Sort Key: r.install_date, r.platform, r.partner, r.country
+                    ->  Seq Scan on revenue r
+                          Output: r.net_revenue, r.install_date, r.platform, r.partner, r.country
+  ->  Sort
+        Output: i.install_date, i.platform, i.partner, i.country, i.installs
+        Sort Key: i.install_date, i.platform, i.partner, i.country
+        ->  Seq Scan on installs i
+              Output: i.install_date, i.platform, i.partner, i.country, i.installs

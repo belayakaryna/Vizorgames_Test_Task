@@ -1,0 +1,19 @@
+SET max_parallel_workers = 8;
+SET max_parallel_workers_per_gather = 3;
+SHOW max_parallel_workers;
+SHOW max_parallel_workers_per_gather;
+
+CREATE OR REPLACE FUNCTION previous_date (date DATE)  RETURNS DATE
+ LANGUAGE sql
+ PARALLEL SAFE
+AS
+$$
+SELECT date - 1;
+$$;
+
+Ещё вариант ALTER TABLE large_table SET (parallel_workers = 3);
+
+EXPLAIN analyze  SELECT
+ previous_date(date)
+FROM
+large_table;
